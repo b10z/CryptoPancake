@@ -1,6 +1,4 @@
-package com.example.b10z.passwordmanager;
 
-import android.content.Context;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PBEParametersGenerator;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
@@ -13,7 +11,6 @@ import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
-import android.util.Base64;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
@@ -29,7 +26,8 @@ public class Crypto {
     private DbHelper newDB;
     private SecretKey secret;
 
-    public boolean encr(String user, String pass, Context context) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidCipherTextException, UnsupportedEncodingException {
+    //initial keys production, using Username, and Password
+    public boolean encr(String user, String pass) throws NoSuchAlgorithmException, InvalidKeySpecException, InvalidCipherTextException, UnsupportedEncodingException {
 
         KeyParameter key1=KeyGen(user, pass, 2000);
         KeyParameter params2 = KeyGen(user, pass, 1000, key1);
@@ -37,7 +35,7 @@ public class Crypto {
 
 
 
-        newDB=new DbHelper(context);
+        newDB=new DbHelper();
 
 
         if (!newDB.Insert_db(user, authHash)) {
@@ -48,7 +46,8 @@ public class Crypto {
 
 
     }
-
+    
+//Production of keys, to check if password is correct
     public boolean Auth_pass(String user, String pass, Context context) {
 
 
@@ -57,7 +56,7 @@ public class Crypto {
 
 
         String authHash= Arrays.toString(params2.getKey());
-        newDB=new DbHelper(context);
+        newDB=new DbHelper();
 
 
         if (!newDB.AuthCheck(user, authHash)) {
@@ -68,19 +67,19 @@ public class Crypto {
 
 
     }
-
-    public boolean DataHasher(String user, String pass, int it, String data, Context con) throws Exception {
+//hashing the data
+    public boolean DataHasher(String user, String pass, int it, String data) throws Exception {
         KeyParameter newKey=KeyGen(user,pass,1000);
         String authHash= Arrays.toString(newKey.getKey());
         String encrypted_stuff=encrypt(data,authHash);
         System.out.println(encrypted_stuff);
-        newDB=new DbHelper(con);
+        newDB=new DbHelper();
         newDB.Data_Register(user,encrypted_stuff);
         return true;
     }
 
 
-
+//Key Creation methods
     public KeyParameter KeyGen(String user, String pass, int it, KeyParameter m){
         byte[] passKey= PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(pass.toCharArray());
         byte[] userb=PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(user.toCharArray());
@@ -107,7 +106,7 @@ public class Crypto {
 
 
 
-
+//encrypt text, using key
     public String encrypt(String word, String authHash) throws Exception {
 
 
@@ -134,6 +133,7 @@ public class Crypto {
         return finale;
     }
 
+    //decrypt text, using key
     public String decrypt(String encryptedText, String authHash) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
         byte[] decryptedTextBytes = null;
