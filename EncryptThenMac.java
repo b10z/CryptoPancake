@@ -12,7 +12,7 @@ import java.util.Arrays;
 
 
 
-public class Crypto  {
+public class EcryptThenMac  {
 
 
     //declaring variables
